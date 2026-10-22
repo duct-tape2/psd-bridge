@@ -6,14 +6,16 @@ Windows용 오프라인 작업 준비 도구입니다. PSD를 검사하고 원�
 
 ## 설치와 사용
 
-1. [최신 배포](https://github.com/duct-tape2/psd-bridge/releases/latest)에서 `PSD-Bridge-0.1.0-Windows-x64.zip`을 받습니다.
+1. [최신 배포](https://github.com/duct-tape2/psd-bridge/releases/latest)에서 **`PSD-Bridge-0.1.0-Setup.zip` 하나만** 받습니다.
 2. ZIP **전체를** 쓰기 가능한 폴더에 풉니다. ZIP 안에서 바로 실행하지 마세요.
-3. `START.bat` 또는 `PSDBridge.exe`를 실행합니다. 별도 Python 설치는 필요 없습니다.
+3. `START.bat`를 실행합니다. 첫 실행에만 약 145MB를 자동으로 내려받아 SHA-256을 확인하고 앱을 엽니다. 별도 Python이나 관리자 권한은 필요 없습니다. 이후 PSD 처리는 완전히 오프라인입니다.
 4. PSD 파일을 창에 끌어다 놓거나 **PSD 추가**를 누릅니다. 여러 파일을 순서대로 처리합니다.
 5. 오른쪽의 검사 결과와 글꼴 목록을 확인합니다. **원본 / 작업본** 버튼으로 미리보기를 비교할 수 있습니다.
 6. **PhotoCraft에서 편집**을 누릅니다. 열린 작업본의 글자와 레이어를 수정하고 저장합니다.
 
 처음에는 `samples/새로운 시작.psd`로 시험해 보세요. 회사 자료가 없는 편집 가능한 한국어 예제입니다.
+
+설치 후에는 `PSD-Bridge-0.1.0/PSD-Bridge/PSDBridge.exe`로 바로 실행할 수 있습니다. BAT 옆에 생성되는 `PSD-Bridge-0.1.0-Windows-x64.zip` 전체를 다른 PC로 옮기면, 인터넷 없이 압축을 풀고 실행할 수 있습니다. 릴리스의 `.part01` 등은 설치 BAT가 자동으로 받는 분할 파일이므로 직접 받을 필요가 없습니다.
 
 Windows 10/11 x64용입니다. 첫 버전 실행 파일은 코드 서명되어 있지 않습니다. 회사의 실행 정책으로 차단되는 경우 담당 관리자에게 승인 여부를 확인하세요.
 
@@ -73,6 +75,7 @@ python -m venv .venv
 .\.venv\Scripts\python.exe main.py
 .\.venv\Scripts\python.exe tests\integration.py
 .\.venv\Scripts\python.exe tools\build.py
+.\.venv\Scripts\python.exe tools\package_download.py
 ```
 
 `tools/fetch_engine.py`는 공식 PhotoCraft v0.11.1 릴리스에서 실행 파일을 가져오고, 저장된 SHA-256과 일치하는지 검사합니다. 다운로드가 필요한 단계는 개발 환경 준비 때뿐입니다.
