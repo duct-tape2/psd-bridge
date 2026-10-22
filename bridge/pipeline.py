@@ -82,7 +82,8 @@ def prepare(source_path, output_root, progress=lambda *args: None):
         output = job/(safe_name(source_path.stem)+'.pcraft')
         preview = job/'작업본 미리보기.png'
         with PhotoCraft(job) as pc:
-            pc.rpc('doc.open',path=str(original))
+            opened=pc.rpc('doc.open',path=str(original))
+            warnings.extend(str(w) for w in (opened or {}).get('warnings',[]))
             imported=pc.rpc('doc.inspect')
             verify_import(source,imported)
             warnings.extend(source['warnings'])
@@ -96,7 +97,8 @@ def prepare(source_path, output_root, progress=lambda *args: None):
             if complicated:
                 warnings.append('효과·스마트 오브젝트 등 세부 편집은 직접 확인해 주세요: '+', '.join(complicated[:8])+(' 외' if len(complicated)>8 else ''))
             progress(45,'편집 가능한 작업본을 저장하고 있어요.')
-            pc.rpc('doc.save',path=str(output))
+            saved=pc.rpc('doc.save',path=str(output))
+            warnings.extend(str(w) for w in (saved or {}).get('warnings',[]))
             pc.rpc('doc.save',path=str(preview))
         progress(64,'저장한 파일을 다시 열어 검사하고 있어요.')
         with PhotoCraft(job) as pc:

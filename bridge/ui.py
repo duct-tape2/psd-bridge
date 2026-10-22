@@ -103,7 +103,7 @@ class Window(QMainWindow):
         try: self.settings=json.loads((DATA/'settings.json').read_text(encoding='utf-8'))
         except (OSError,ValueError): self.settings={}
         self.output=Path(self.settings.get('output',str(DEFAULT_OUTPUT)))
-        self.jobs=[]; self.active=None; self.proc=None; self.last_status=''; self.started=0
+        self.jobs=[]; self.active=None; self.proc=None; self.last_status=''; self.started=0; self.closing=False
         root=QWidget(); layout=QHBoxLayout(root); layout.setContentsMargins(0,0,0,0); layout.setSpacing(0); self.setCentralWidget(root)
         rail=QWidget(); rail.setObjectName('rail'); rail.setFixedWidth(215); rl=QVBoxLayout(rail); rl.setContentsMargins(18,25,18,20); rl.setSpacing(14)
         rl.addWidget(label('CREATIVE HANDOFF','eyebrow')); rl.addWidget(label('PSD Bridge','brand'))
@@ -210,7 +210,7 @@ class Window(QMainWindow):
             j=self.current(); self.progress.setValue(100 if j and j.get('result') else 0)
             self.message.setText('작업본을 열어 이어서 편집하세요.' if j and j.get('result') else '파일을 놓거나 왼쪽의 PSD 추가를 눌러 시작하세요.')
     def start_next(self):
-        if self.active: return
+        if self.active or self.closing: return
         job=next((j for j in self.jobs if j['state']=='대기 중'),None)
         if not job: self.refresh_progress(); return
         self.active=job; job['state']='준비 중'; self.update_item(job)
@@ -259,9 +259,14 @@ class Window(QMainWindow):
         try:
             if not path.is_file() or not exe.is_file(): raise FileNotFoundError('작업본 또는 PhotoCraft 실행 파일이 없습니다. ZIP 전체를 다시 풀어 주세요.')
             env=os.environ.copy(); env['PHOTOCRAFT_CONFIG_DIR']=str(DATA/'PhotoCraft')
-            # Safe CPU rendering and a dedicated instance avoid taking over existing edits.
+            preferences=DATA/'PhotoCraft'/'preferences.json'
+            if not preferences.exists():
+                # An explicit initial CPU preference avoids the recovery modal that
+                # --safe-gpu intentionally displays. Later user preferences are kept.
+                write_json(preferences,{'performance':{'renderingMode':'cpu','useGpu':False,'gpuBackend':'auto'}})
+            # A dedicated instance avoids taking over existing edits.
             log=open(DATA/'photocraft.log','ab')
-            process=subprocess.Popen([str(exe),'--new-instance','--safe-gpu','--',str(path)],cwd=str(engine_dir()),env=env,stdout=log,stderr=log,creationflags=0x08000000)
+            process=subprocess.Popen([str(exe),'--new-instance','--',str(path)],cwd=str(engine_dir()),env=env,stdout=log,stderr=log,creationflags=0x08000000)
             log.close(); self.message.setText('PhotoCraft를 여는 중이에요…')
             def check():
                 if process.poll() is not None and process.returncode!=0:
@@ -276,6 +281,7 @@ class Window(QMainWindow):
         j=self.current()
         if j and j.get('result'): QDesktopServices.openUrl(QUrl.fromLocalFile(str(Path(j['result']['directory'])/'검사 결과.html')))
     def closeEvent(self,event):
+        self.closing=True
         if self.active and self.proc:
             self.active['cancelled']=True; self.proc.kill(); self.proc.waitForFinished(3000)
         self.save_settings(); event.accept()

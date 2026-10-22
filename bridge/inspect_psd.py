@@ -36,6 +36,8 @@ def inspect_psd(path, preview_path):
     hierarchy=tree(psd)
     for layer in all_layers:
         item = {'name': layer.name, 'kind': layer.kind, 'visible': layer.visible, 'bbox': list(layer.bbox)}
+        if layer.kind not in {'pixel','type','group','shape','smartobject'}:
+            warnings.append(f'「{layer.name}」: {layer.kind} 레이어의 세부 속성은 자동 검증 범위 밖입니다. PhotoCraft에서 편집 방식과 표시를 확인해 주세요.')
         if layer.kind == 'type':
             item['text'] = normalize_text(layer.text)
         if layer.kind == 'smartobject':
